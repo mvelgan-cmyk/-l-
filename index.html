@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Відкритий клас</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14213D; --ink2:#4A5671; --muted:#8A93A6;
+  --bg:#F6F4EF; --card:#FFFFFF; --line:#E4E0D6;
+  --navy:#1F3A68; --accent:#FF6B3D; --accentSoft:#FFE6DC;
+  --green:#2F8F6B; --greenSoft:#DDF1E8; --blueSoft:#E3EBF7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#1b2233;font-family:Manrope,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+#stage{padding:64px 16px 24px}
+#deck{max-width:1280px;margin:0 auto}
+.frame{position:relative;overflow:hidden;border-radius:8px;margin:0 auto 20px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.frame .slide{position:absolute;left:0;top:0;margin:0}
+body.present{overflow:hidden}
+body.present #stage{padding:0}
+body.present .frame{display:none;margin:0;border-radius:0}
+body.present .frame.active{display:block;position:fixed;z-index:3}
+#top{position:fixed;top:12px;right:16px;z-index:8;display:flex;gap:8px}
+#top button{background:#FF6B3D;color:#fff;border:none;border-radius:10px;padding:10px 16px;font:700 15px Manrope,Arial,sans-serif;cursor:pointer}
+body.present #top{display:none}
+#nav,#bar{display:none}
+body.present #nav{display:flex}
+body.present #bar{display:block}
+.slide{position:relative;width:1280px;height:720px;flex:none;background:var(--bg);padding:56px 80px 70px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;transform-origin:0 0;margin:0 auto 20px}
+.kicker{font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h1{font-size:64px;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+h2{font-size:44px;line-height:1.1;font-weight:800;letter-spacing:-.015em;margin-bottom:28px;max-width:1000px}
+h3{font-size:22px;font-weight:700;margin-bottom:8px}
+p,li{font-size:20px;line-height:1.5;color:var(--ink2)}
+.lead{font-size:24px;line-height:1.5;color:var(--ink2);max-width:900px}
+.grid{display:grid;gap:22px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px 28px}
+.card p{font-size:18px}
+.num{font-size:15px;font-weight:800;color:var(--accent);margin-bottom:10px}
+.foot{position:absolute;left:80px;right:80px;bottom:28px;display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.pill{display:inline-block;padding:7px 16px;border-radius:999px;font-size:16px;font-weight:600;background:var(--blueSoft);color:var(--navy);margin:0 8px 8px 0}
+.pill.on{background:var(--navy);color:#fff}
+.pill.acc{background:var(--accentSoft);color:#B23E14}
+mark{background:var(--accentSoft);color:var(--ink);padding:0 6px;border-radius:6px}
+
+/* title */
+.title{background:var(--navy);color:#fff;justify-content:center}
+.title h1{color:#fff;font-size:72px;max-width:860px;position:relative;z-index:2}
+.title .lead{color:#C9D4EA;margin-top:22px}
+.title .kicker{color:#FF9B78}
+.title .okr{margin-top:46px;display:flex;gap:16px;max-width:1080px}
+.title .okr div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:16px 20px;font-size:16px;line-height:1.45;color:#DCE4F3}
+.title .okr b{color:#fff;display:block;margin-bottom:4px}
+.blob{position:absolute;right:-170px;top:-170px;width:400px;height:400px;border-radius:50%;background:var(--accent);opacity:.9}
+.blob2{position:absolute;right:120px;bottom:-160px;width:300px;height:300px;border-radius:50%;border:40px solid rgba(255,255,255,.08)}
+
+/* flow */
+.flow{display:flex;gap:0;margin-top:10px}
+.step{flex:1;position:relative;padding-right:18px}
+.step .dot{width:54px;height:54px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}
+.step:not(:last-child)::after{content:"";position:absolute;top:27px;left:54px;right:0;height:3px;background:var(--line);z-index:1}
+.step h3{margin-top:18px;font-size:20px}
+.step p{font-size:16px;line-height:1.45}
+.step.hl .dot{background:var(--accent)}
+
+/* stat tiles */
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 26px}
+.stat .big{font-size:40px;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+.stat p{font-size:16px;margin-top:6px;line-height:1.4}
+.rules3 .stat{padding:36px 32px}.rules3 .big{font-size:64px}.rules3 .stat p{font-size:20px;margin-top:10px}
+
+/* form mock */
+.form{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px 34px;box-shadow:0 18px 40px -24px rgba(20,33,61,.35)}
+.q{padding:16px 0;border-bottom:1px dashed var(--line)}
+.q:last-child{border:none}
+.q .t{font-size:19px;font-weight:700;color:var(--ink);margin-bottom:12px}
+.q .t small{font-weight:500;color:var(--muted);font-size:15px}
+.field{border:1.5px solid var(--line);border-radius:12px;padding:12px 16px;font-size:16px;color:var(--muted);font-style:italic}
+.side li{margin:0 0 18px 22px;font-size:22px}
+.tag{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:6px;background:var(--greenSoft);color:var(--green);margin-left:8px;vertical-align:middle}
+.tag.h{background:var(--accentSoft);color:#B23E14}
+
+/* table-ish */
+.rows .r{display:grid;grid-template-columns:240px 1fr 220px;gap:20px;padding:18px 0;border-bottom:1px solid var(--line);align-items:center}
+.rows .r.h{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:0}
+.rows .r div{font-size:20px;color:var(--ink2)}
+.rows .r div:first-child{font-weight:700;color:var(--ink)}
+.rows .r div:last-child{font-weight:700;color:var(--navy)}
+
+/* tabs mock */
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:22px}
+.tabs span{padding:12px 20px;font-size:17px;font-weight:700;color:var(--muted);border-radius:10px 10px 0 0}
+.tabs span.on{color:var(--navy);background:var(--card);border:2px solid var(--line);border-bottom:2px solid var(--card);margin-bottom:-2px}
+
+.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;border-top:6px solid var(--navy)}
+.stage.k{border-top-color:var(--accent)}
+.stage .when{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.stage p{font-size:16px;line-height:1.45}
+
+.qlist{counter-reset:q;display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}
+.qlist div{counter-increment:q;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 22px 18px 66px;position:relative;font-size:18px;line-height:1.45;color:var(--ink2)}
+.qlist div b{color:var(--ink)}
+.qlist div::before{content:counter(q);position:absolute;left:20px;top:18px;width:32px;height:32px;border-radius:50%;background:var(--accentSoft);color:#B23E14;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px}
+
+.quote{background:var(--navy);color:#fff;border-radius:18px;padding:26px 30px;font-size:21px;line-height:1.5}
+.quote small{display:block;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#FF9B78;font-weight:700;margin-bottom:8px}
+
+/* UI */
+#bar{position:fixed;left:0;bottom:0;height:4px;background:var(--accent);transition:width .25s}
+#nav{position:fixed;right:18px;bottom:16px;display:flex;gap:8px;align-items:center;font-size:13px;color:#AEB7C8;z-index:5}
+#nav button{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;width:36px;height:32px;font-size:16px;cursor:pointer}
+#nav button:hover{background:rgba(255,255,255,.22)}
+#notes{position:fixed;left:16px;right:16px;bottom:56px;max-width:900px;margin:0 auto;background:#0f1524;color:#E6EBF5;border-radius:12px;padding:16px 20px;font-size:15px;line-height:1.55;display:none;z-index:6;border:1px solid #2c3550}
+#notes.show{display:block}
+#notes b{color:#FF9B78}
+.notes{display:none}
+
+body:not(.present) #nav,body:not(.present) #bar,body:not(.present) #notes{display:none}
+@media print{
+  html,body{background:#fff}
+  #stage{padding:0}
+  .frame{width:1280px!important;height:720px!important;margin:0;border-radius:0;box-shadow:none;page-break-after:always;position:relative!important;display:block!important;left:auto!important;top:auto!important}
+  .slide{transform:none!important}
+  #nav,#bar,#notes,#top{display:none!important}
+  @page{size:1280px 720px;margin:0}
+}
+</style>
+</head>
+<body>
+<div id="stage"><div id="deck">
+
+<!-- 1 -->
+<section class="slide title">
+  <div class="blob"></div><div class="blob2"></div>
+  <div class="kicker">GoITeens · Відділ викладачів</div>
+  <h1>Відкритий клас: перехресні відвідування уроків</h1>
+  <p class="lead">Концепція системи на базі ERP Booking — для обговорення</p>
+  <div class="okr">
+    <div><b>Ціль</b>Розробити й запустити систему перехресних відвідувань онлайн-уроків для підтримки й розвитку викладачів</div>
+    <div><b>KR1</b>Концепція на базі існуючого букінгу, включно з формою зворотного зв'язку</div>
+    <div><b>KR3</b>Запуск мінімум на 3 напрямах до кінця кварталу, зафіксований фідбек</div>
+  </div>
+  <div class="notes">Коротко: сьогодні показую концепцію і хочу разом ухвалити кілька рішень — вони в кінці презентації.</div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="kicker">Навіщо</div>
+  <h2>Викладачі працюють поруч, але не бачать одне одного</h2>
+  <div class="grid g3">
+    <div class="card"><div class="num">01</div><h3>Ізоляція</h3><p>Кожен бачить лише свої уроки й не знає, як ту саму ситуацію вирішують колеги.</p></div>
+    <div class="card"><div class="num">02</div><h3>Практики не поширюються</h3><p>Найкращі прийоми залишаються в окремих людей і не переходять між напрямами.</p></div>
+    <div class="card"><div class="num">03</div><h3>Зовнішній погляд = перевірка</h3><p>Єдиний регулярний погляд на урок — QC, і його сприймають як контроль, а не підтримку.</p></div>
+  </div>
+  <p class="lead" style="margin-top:34px">Новим викладачам бракує живих прикладів того, як виглядає <mark>хороший урок GoITeens</mark>.</p>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+  <div class="notes">Можна навести приклад зі скарг: багато ситуацій, які в одних викладачів стають проблемою, інші вже давно вміють вирішувати.</div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="kicker">Ідея</div>
+  <h2>Викладач заходить на живий урок колеги як тихий спостерігач</h2>
+  <div class="grid g2" style="gap:28px">
+    <div>
+      <p class="lead" style="font-size:22px">Усе в ERP: викладач сам відкриває свої уроки → колега знаходить урок, бронює місце, у потрібний момент отримує посилання → після уроку відповідає на 3 короткі питання.</p>
+      <div class="quote" style="margin-top:28px"><small>Головна думка</small>Це інструмент розвитку, а не контролю. Ніхто нікого не оцінює.</div>
+    </div>
+    <div class="grid" style="gap:14px">
+      <div class="card" style="padding:18px 22px"><h3 style="font-size:19px">Відкритість за згодою</h3><p style="font-size:16px">На урок можна прийти, лише якщо викладач сам його відкрив</p></div>
+      <div class="card" style="padding:18px 22px"><h3 style="font-size:19px">Без взаємного оцінювання</h3><p style="font-size:16px">Гість ділиться, що забрав собі, і за бажанням лишає колезі кілька слів</p></div>
+      <div class="card" style="padding:18px 22px"><h3 style="font-size:19px">Невидимість для учнів</h3><p style="font-size:16px">Камера й мікрофон вимкнені, урок іде як завжди</p></div>
+      <div class="card" style="padding:18px 22px"><h3 style="font-size:19px">Мінімум зусиль</h3><p style="font-size:16px">Форма на хвилину, господар нічого не заповнює</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+  <div class="notes">Підкреслити «не контроль» — це головне заперечення, яке почуємо від викладачів і тімлідів.</div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="kicker">Як це працює · гість</div>
+  <h2>Шлях викладача, який іде на урок до колеги</h2>
+  <div class="flow">
+    <div class="step"><div class="dot">1</div><h3>Знаходить урок</h3><p>Каталог з фільтрами: напрям, день і час</p></div>
+    <div class="step"><div class="dot">2</div><h3>Обирає колегу</h3><p>Картка з полем «Що можна в мене підгледіти»</p></div>
+    <div class="step"><div class="dot">3</div><h3>Бронює</h3><p>Система перевіряє конфлікт із власним розкладом</p></div>
+    <div class="step"><div class="dot">4</div><h3>Отримує посилання</h3><p>Кнопка «Приєднатися» — за 10 хв до початку</p></div>
+    <div class="step"><div class="dot">5</div><h3>Спостерігає</h3><p>Тихо, без камери, до кінця уроку</p></div>
+    <div class="step hl"><div class="dot">6</div><h3>Форма</h3><p>3 питання, ~1 хвилина, протягом 48 год</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:44px">
+    <div class="card" style="background:var(--blueSoft);border:none"><h3>Ходити можна і до свого, і до чужого напряму</h3><p>Прийоми залученості, комунікації й дисципліни часто корисніше підглянути саме в іншому напрямі.</p></div>
+    <div class="card" style="background:var(--accentSoft);border:none"><h3>Посилання не розсилається заздалегідь</h3><p>Його видно лише підтвердженому гостю і лише у вікні уроку.</p></div>
+  </div>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="kicker">Як це працює · господар</div>
+  <h2>Для того, до кого приходять, — три кроки й більше нічого</h2>
+  <div class="grid g3">
+    <div class="card"><div class="num">КРОК 1</div><h3>Відкриває уроки</h3><p>Усі, окремі групи або конкретні дати. Винятки на окремий день — як галочка «тільки на цей день» у Schedule.</p></div>
+    <div class="card"><div class="num">КРОК 2</div><h3>Налаштовує</h3><p>Скільки гостей (зазвичай 1), автопідтвердження так/ні і поле «Що можна в мене підгледіти».</p></div>
+    <div class="card"><div class="num">КРОК 3</div><h3>Представляє гостя</h3><p>Одна фраза учням на початку уроку. Після візиту — отримує слова від колеги, якщо той їх залишив.</p></div>
+  </div>
+  <div class="quote" style="margin-top:30px"><small>Фраза для учнів</small>«Друзі, сьогодні з нами мій колега — викладач GoITeens. Він прийшов подивитися, як ми працюємо. Камера в нього вимкнена, тож працюємо як завжди!»</div>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="kicker">Правила</div>
+  <h2>Лише три правила, щоб усім було комфортно</h2>
+  <div class="grid g3 rules3" style="gap:22px">
+    <div class="stat"><div class="big">12 год</div><p>мінімум до уроку, щоб забронювати візит</p></div>
+    <div class="stat"><div class="big">1 год</div><p>до уроку — останній момент, щоб скасувати візит</p></div>
+    <div class="stat"><div class="big">1–2</div><p>гості на одному уроці, не більше</p></div>
+  </div>
+  <p style="margin-top:24px;font-size:17px;color:var(--muted)">Усі значення налаштовуються й перевіряються на пілоті.</p>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="kicker">Етикет спостерігача</div>
+  <h2>Гість — тихий і невидимий</h2>
+  <div class="grid g2" style="gap:40px">
+    <ul class="side" style="list-style:none">
+      <li style="margin-left:0">🎥 &nbsp;Камера й мікрофон вимкнені весь урок</li>
+      <li style="margin-left:0">🏷️ &nbsp;Ім'я в конференції: «Ім'я — викладач-гість»</li>
+      <li style="margin-left:0">💬 &nbsp;Не пише в чат і не втручається, якщо не попросили</li>
+      <li style="margin-left:0">📵 &nbsp;Жодних записів і скриншотів, жодних імен дітей у формі</li>
+      <li style="margin-left:0">⏱️ &nbsp;Приходить вчасно, залишається до кінця</li>
+      <li style="margin-left:0">🚨 &nbsp;Помітив щось критичне — пише господарю в особисті</li>
+    </ul>
+    <div class="card" style="align-self:start"><h3>Чому це важливо</h3><p>Діти не мають відчувати, що урок «інший». Чим менш помітний гість, тим чесніше він побачить урок — і тим спокійніше погодиться відкривати уроки господар.</p></div>
+  </div>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="kicker">Форма після візиту</div>
+  <h2>Три питання й хвилина часу</h2>
+  <div class="grid" style="grid-template-columns:1.25fr 1fr;gap:40px;align-items:start">
+    <div class="form">
+      <div class="q"><div class="t">1. Чи був візит корисним для тебе? <span class="tag">аналітика</span></div>
+        <span class="pill on">Так</span><span class="pill">Частково</span><span class="pill">Ні</span></div>
+      <div class="q"><div class="t">2. Що забираєш собі? <small>1–2 теги</small> <span class="tag">аналітика</span></div>
+        <span class="pill on">Залученість учнів</span><span class="pill">Пояснення матеріалу</span><span class="pill">Дисципліна</span><span class="pill">Комунікація і ToV</span><span class="pill on">Цифрові інструменти</span><span class="pill">Структура уроку</span><span class="pill">Інше</span></div>
+      <div class="q"><div class="t">3. Кілька слів колезі <small>необов'язково</small> <span class="tag h">бачить господар</span></div>
+        <div class="field">Що тобі сподобалось або відгукнулося?</div></div>
+    </div>
+    <div>
+      <div class="quote"><small>Свідоме рішення</small>Викладачі не оцінюють одне одного. Гість оцінює лише власний досвід.</div>
+      <ul class="side" style="margin-top:24px">
+        <li>Господар нічого не заповнює</li>
+        <li>Візит зараховується після заповнення форми</li>
+        <li>Слова колезі — без імен дітей, порівнянь і непроханих порад</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+  <div class="notes">Якщо спитають «а як тоді міряти якість?» — наступний слайд: ефект міряємо на рівні груп через QC і скарги.</div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <div class="kicker">Аналітика</div>
+  <h2>Як зрозуміємо, що це має ефект</h2>
+  <div class="rows">
+    <div class="r h"><div>Що вимірюємо</div><div>Показник</div><div>Орієнтир пілоту</div></div>
+    <div class="r"><div>Активність</div><div>Частка викладачів з ≥1 візитом на місяць · частка з відкритими уроками</div><div>60% · 50%</div></div>
+    <div class="r"><div>Дисципліна процесу</div><div>Форми, заповнені за 48 год · неявки</div><div>90% · ≤10%</div></div>
+    <div class="r"><div>Корисність</div><div>Частка «так» у питанні «Чи був візит корисним?»</div><div>≥ 70%</div></div>
+    <div class="r"><div>Потреби</div><div>Найпопулярніші теги «Що забираєш собі»</div><div>Теми вебінарів</div></div>
+    <div class="r"><div>Якість викладання</div><div>QC-оцінки та скарги: ті, хто ходить, vs ті, хто ні</div><div>Через 1–2 кв.</div></div>
+  </div>
+  <p style="margin-top:20px;font-size:17px;color:var(--muted)">QC і скарги порівнюємо лише на рівні груп. Відповіді з форми ніколи не впливають на оцінку конкретного викладача.</p>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <div class="kicker">Що змінюється в ERP</div>
+  <h2>Новий розділ «Відкритий клас» на базі того, що вже є</h2>
+  <div class="tabs"><span class="on">Знайти урок</span><span>Мої візити</span><span>Гості на моїх уроках</span><span>Слова від колег</span></div>
+  <div class="grid g2" style="gap:22px">
+    <div class="card">
+      <h3>Використовуємо наявне</h3>
+      <p style="font-size:17px;margin-top:6px"><b style="color:var(--ink)">Профіль</b> — картка викладача, Slack для сповіщень, часовий пояс<br>
+      <b style="color:var(--ink)">Schedule + LMS</b> — уроки, на які можна записатися, і перевірка конфліктів<br>
+      <b style="color:var(--ink)">Invitations</b> — можна запустити саме під запити на візити<br>
+      <b style="color:var(--ink)">QC Assessments</b> — етап 2: підказки «кого відвідати»</p>
+    </div>
+    <div class="card" style="background:var(--accentSoft);border:none">
+      <h3>Важливий нюанс для розробки</h3>
+      <p style="font-size:17px">У Schedule є два типи записів: слоти доступності й реальні заняття з LMS. Відвідувати можна <b style="color:var(--ink)">лише реальні заняття</b> — тільки в них є група, тема й посилання.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Відкритий клас</span><span class="pn"></span></div>
+</section>
+
+<!-- 11 -->
+<section class="slide title">
+  <div class="blob" style="opacity:.25"></div>
+  <div class="kicker">Підсумок</div>
+  <h1 style="font-size:60px">Викладачі вчаться одне в одного</h1>
+  <div class="okr" style="margin-top:40px">
+    <div style="flex:1"><b>Просто</b>Відкрив урок — колега прийшов — форма на хвилину</div>
+    <div style="flex:1"><b>Без оцінювання</b>Лише спостереження і добрі слова колезі</div>
+    <div style="flex:1"><b>Вимірювано</b>Активність, корисність візитів і динаміка якості</div>
+  </div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="notes"></div>
+<div id="top"><button id="play">▶ Презентувати</button></div>
+<div id="nav"><button id="prev" aria-label="Назад">‹</button><button id="next" aria-label="Далі">›</button><button id="exit" title="Вийти (Esc)" style="width:auto;padding:0 10px;font-size:13px">✕</button><button id="nbtn" title="Нотатки (N)" style="width:auto;padding:0 10px;font-size:13px">N</button><button id="fs" title="Повний екран (F)" style="width:auto;padding:0 10px;font-size:13px">⛶</button></div>
+
+<script>
+(function(){
+var deck=document.getElementById('deck');
+var slides=[].slice.call(document.querySelectorAll('.slide'));
+var frames=slides.map(function(sl,k){
+  var fr=document.createElement('div');fr.className='frame';
+  sl.parentNode.insertBefore(fr,sl);fr.appendChild(sl);
+  var pn=sl.querySelector('.pn');if(pn)pn.textContent=(k+1)+' / '+slides.length;
+  fr.addEventListener('click',function(e){if(document.body.classList.contains('present')&&!e.target.closest('button'))go(i+1)});
+  return fr;
+});
+var i=0,present=false;
+var $=function(id){return document.getElementById(id)};
+function layout(){
+  frames.forEach(function(fr,k){
+    var sl=slides[k],sc;
+    if(present){
+      sc=Math.min(innerWidth/1280,innerHeight/720);
+      fr.classList.toggle('active',k===i);
+      fr.style.width=1280*sc+'px';fr.style.height=720*sc+'px';
+      fr.style.left=(innerWidth-1280*sc)/2+'px';fr.style.top=(innerHeight-720*sc)/2+'px';
+    }else{
+      fr.classList.remove('active');fr.style.left=fr.style.top='';
+      var w=Math.min(deck.clientWidth||innerWidth-32,1280);sc=w/1280;
+      fr.style.width=w+'px';fr.style.height=720*sc+'px';
+    }
+    sl.style.transform='scale('+sc+')';
+  });
+  if(present){
+    $('bar').style.width=((i+1)/slides.length*100)+'%';
+    var nt=slides[i].querySelector('.notes');
+    $('notes').innerHTML='<b>Нотатки:</b> '+(nt?nt.innerHTML:'—');
+  }
+}
+function go(n){i=Math.max(0,Math.min(slides.length-1,n));layout()}
+function start(n){present=true;document.body.classList.add('present');go(n);
+  try{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(function(){})}catch(e){}}
+function stop(){present=false;document.body.classList.remove('present');$('notes').classList.remove('show');
+  try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}
+  layout();frames[i].scrollIntoView({block:'center'})}
+$('play').onclick=function(){
+  var best=0,bd=1e9;frames.forEach(function(fr,k){var d=Math.abs(fr.getBoundingClientRect().top);if(d<bd){bd=d;best=k}});start(best)};
+$('prev').onclick=function(){go(i-1)};$('next').onclick=function(){go(i+1)};
+$('exit').onclick=stop;
+$('nbtn').onclick=function(){$('notes').classList.toggle('show')};
+$('fs').onclick=function(){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
+addEventListener('keydown',function(e){
+  if(!present){if(e.key==='p'||e.key==='P'||e.key==='з'||e.key==='З')$('play').click();return}
+  var k=e.key;
+  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].indexOf(k)>-1){e.preventDefault();go(i+1)}
+  else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].indexOf(k)>-1){e.preventDefault();go(i-1)}
+  else if(k==='Home')go(0);else if(k==='End')go(slides.length-1);
+  else if(k==='Escape')stop();
+  else if('nNтТ'.indexOf(k)>-1)$('nbtn').click();
+  else if('fFаА'.indexOf(k)>-1)$('fs').click();
+});
+document.addEventListener('fullscreenchange',layout);
+var tx=null;addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+addEventListener('touchend',function(e){if(!present||tx===null)return;var d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)go(i+(d<0?1:-1));tx=null});
+addEventListener('resize',layout);
+layout();
+})();
+</script>
+</body>
+</html>
